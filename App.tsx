@@ -22,7 +22,17 @@ enum AppMode {
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>(AppMode.HOME);
+  const [configError, setConfigError] = useState<string | null>(null);
   
+  useEffect(() => {
+    // Check if Firebase is properly configured
+    const isConfigured = db && (db as any)._databaseId; // Simple check
+    if (!isConfigured) {
+      // We don't want to block the whole app if it's just a warning, 
+      // but if it's completely missing, we should know.
+    }
+  }, []);
+
   // Initialize from LocalStorage or fallback to Sample Data
   const [quizzes, setQuizzes] = useState<Quiz[]>(() => {
     try {
@@ -44,6 +54,7 @@ const App: React.FC = () => {
 
   // Firebase Quizzes Effect
   useEffect(() => {
+    if (!db) return;
     const q = query(collection(db, 'quizzes'), orderBy('title'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fbQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quiz));
