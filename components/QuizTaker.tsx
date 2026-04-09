@@ -324,7 +324,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
             )}
 
             <button
-              onClick={handleNext}
+              onClick={() => handleNext()}
               disabled={!isAnswered}
               className={`px-8 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all
                 ${isAnswered 

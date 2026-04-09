@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 
@@ -15,34 +15,31 @@ const firebaseConfig = {
   firestoreDatabaseId: (firebaseConfigData as any).firestoreDatabaseId || import.meta.env.VITE_FIREBASE_DATABASE_ID
 };
 
-if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('TODO')) {
-  console.error("Firebase API Key is missing or placeholder. The app will not be able to connect to the database.");
-}
+const isConfigValid = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('TODO');
 
 let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (e) {
-  console.error("Failed to initialize Firebase app:", e);
+if (isConfigValid) {
+  try {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  } catch (e) {
+    console.error("Firebase initialization failed:", e);
+  }
+} else {
+  console.warn("Firebase configuration is missing or invalid. App will run in local mode.");
 }
 
-const dbId = firebaseConfig.firestoreDatabaseId;
-export const db = app ? (dbId ? getFirestore(app, dbId) : getFirestore(app)) : null as any;
+export const db = app ? (firebaseConfig.firestoreDatabaseId ? getFirestore(app, firebaseConfig.firestoreDatabaseId) : getFirestore(app)) : null as any;
 export const auth = app ? getAuth(app) : null as any;
 
 // Test connection
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-    console.log("Firebase connection successful.");
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('the client is offline')) {
-        console.error("Firebase is offline. Please check your internet connection and Firebase configuration.");
+if (db) {
+  getDocFromServer(doc(db, 'test', 'connection'))
+    .then(() => console.log("Firebase connection successful."))
+    .catch((error) => {
+      if (error.message?.includes('the client is offline')) {
+        console.error("Firebase is offline.");
       } else {
         console.error("Firebase connection error:", error.message);
       }
-    }
-  }
+    });
 }
-testConnection();
