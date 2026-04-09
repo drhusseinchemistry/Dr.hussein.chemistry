@@ -5,7 +5,12 @@ import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 // Standard Firebase configuration for AI Studio Build
 import firebaseConfigData from './firebase-applet-config.json';
 
-console.log("Firebase config loaded:", !!firebaseConfigData.apiKey);
+const debug = (msg: string) => {
+  console.log(msg);
+  if ((window as any).debug) (window as any).debug(msg);
+};
+
+debug("Firebase config loaded: " + !!firebaseConfigData.apiKey);
 
 const firebaseConfig = {
   apiKey: firebaseConfigData.apiKey || import.meta.env.VITE_FIREBASE_API_KEY,
