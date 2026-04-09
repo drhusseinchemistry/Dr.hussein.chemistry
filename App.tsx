@@ -131,6 +131,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAdminClick = () => {
+    const password = prompt("تکایە رەمزێ لێ بدە (Password):");
+    if (password === "hussein#1996#hussein") {
+      setMode(AppMode.ADMIN);
+    } else if (password !== null) {
+      alert("رەمزێ تە خەلەتە!");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pb-10" dir="rtl">
       {/* Navbar */}
@@ -203,7 +212,7 @@ const App: React.FC = () => {
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <button 
-                  onClick={() => setMode(AppMode.ADMIN)}
+                  onClick={handleAdminClick}
                   className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors text-sm font-medium"
                 >
                   <ShieldCheck className="w-4 h-4" />
