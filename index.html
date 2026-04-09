@@ -14,45 +14,8 @@
     <link rel="stylesheet" href="/index.css">
   </head>
   <body>
-    <div id="root">
-      <div id="loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; gap: 15px; background: #f9fafb;">
-        <div style="font-size: 28px; font-weight: bold; color: #4f46e5; animation: pulse 2s infinite;">Loading...</div>
-        <div id="debug-info" style="font-size: 12px; color: #6b7280;">Initializing application...</div>
-        <div id="error-display" style="color: #ef4444; font-size: 14px; max-width: 80%; text-align: center; padding: 10px; border-radius: 8px; background: #fef2f2; display: none;"></div>
-      </div>
-    </div>
-    <style>
-      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    </style>
-    <script>
-      const debug = (msg) => {
-        console.log(msg);
-        const el = document.getElementById('debug-info');
-        if (el) el.innerText = msg;
-      };
-      
-      window.onerror = function(msg, url, lineNo, columnNo, error) {
-        debug('Error encountered');
-        const display = document.getElementById('error-display');
-        if (display) {
-          display.style.display = 'block';
-          display.innerHTML = '<b>Error:</b> ' + msg + '<br><small>' + url + ':' + lineNo + '</small>';
-        }
-        return false;
-      };
-      
-      window.addEventListener('unhandledrejection', function(event) {
-        debug('Promise rejection');
-        const display = document.getElementById('error-display');
-        if (display) {
-          display.style.display = 'block';
-          display.innerHTML = '<b>Promise Error:</b> ' + event.reason;
-        }
-      });
-
-      debug('HTML Loaded, starting script...');
-    </script>
-    <script type="module" src="/src/index.tsx" onerror="debug('Failed to load /src/index.tsx')"></script>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
