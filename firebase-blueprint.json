@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Quiz": {
+      "title": "Quiz",
+      "description": "A quiz containing multiple questions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "timerSeconds": { "type": "number" },
+        "questions": {
+          "type": "array",
+          "items": { "$ref": "Question" }
+        }
+      },
+      "required": ["id", "title", "questions"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "A single quiz question",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["MULTIPLE_CHOICE", "TRUE_FALSE", "FILL_BLANK"] },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswer": { "type": "string" }
+      },
+      "required": ["id", "text", "type", "correctAnswer"]
+    },
+    "QuizSubmission": {
+      "title": "QuizSubmission",
+      "description": "A student's submission for a quiz",
+      "type": "object",
+      "properties": {
+        "quizId": { "type": "string" },
+        "quizTitle": { "type": "string" },
+        "studentInfo": { "$ref": "StudentInfo" },
+        "scorePercentage": { "type": "number" },
+        "correctAnswers": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "answers": { "type": "array", "items": { "$ref": "UserAnswer" } },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["quizId", "studentInfo", "scorePercentage", "timestamp"]
+    },
+    "StudentInfo": {
+      "title": "StudentInfo",
+      "description": "Information about the student",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "section": { "type": "string" }
+      },
+      "required": ["name", "section"]
+    },
+    "UserAnswer": {
+      "title": "UserAnswer",
+      "description": "A student's answer to a specific question",
+      "type": "object",
+      "properties": {
+        "questionId": { "type": "string" },
+        "questionText": { "type": "string" },
+        "answer": { "type": "string" },
+        "correctAnswer": { "type": "string" },
+        "isCorrect": { "type": "boolean" }
+      },
+      "required": ["questionId", "answer", "isCorrect"]
+    }
+  },
+  "firestore": {
+    "/quizzes/{quizId}": {
+      "schema": "Quiz",
+      "description": "Collection of quizzes"
+    },
+    "/submissions/{submissionId}": {
+      "schema": "QuizSubmission",
+      "description": "Collection of student quiz results"
+    }
+  }
+}

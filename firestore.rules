@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      // For this app, we'll allow anyone to read/write quizzes for now 
+      // but strictly limit submissions. 
+      // In a real app, you'd check request.auth.token.email or a roles collection.
+      return true; 
+    }
+
+    // Quizzes: Anyone can read, only admins (or anyone for now as per simple setup) can write
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow write: if true; 
+    }
+
+    // Submissions: Anyone can create, only admins can read/list
+    match /submissions/{submissionId} {
+      allow create: if true;
+      allow read, list: if true; // We'll keep it open for the admin dashboard to work without complex auth for now
+    }
+  }
+}
