@@ -19,7 +19,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!db) return;
     const q = query(collection(db, 'submissions'), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizResult));

@@ -21,19 +21,8 @@ enum AppMode {
 }
 
 const App: React.FC = () => {
-  console.log('App component rendering...');
   const [mode, setMode] = useState<AppMode>(AppMode.HOME);
-  const [configError, setConfigError] = useState<string | null>(null);
   
-  useEffect(() => {
-    // Check if Firebase is properly configured
-    const isConfigured = db && (db as any)._databaseId; // Simple check
-    if (!isConfigured) {
-      // We don't want to block the whole app if it's just a warning, 
-      // but if it's completely missing, we should know.
-    }
-  }, []);
-
   // Initialize from LocalStorage or fallback to Sample Data
   const [quizzes, setQuizzes] = useState<Quiz[]>(() => {
     try {
@@ -55,7 +44,6 @@ const App: React.FC = () => {
 
   // Firebase Quizzes Effect
   useEffect(() => {
-    if (!db) return;
     const q = query(collection(db, 'quizzes'), orderBy('title'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fbQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quiz));
@@ -143,15 +131,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleAdminClick = () => {
-    const password = prompt("تکایە رەمزێ لێ بدە (Password):");
-    if (password === "hussein#1996#hussein") {
-      setMode(AppMode.ADMIN);
-    } else if (password !== null) {
-      alert("رەمزێ تە خەلەتە!");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 pb-10" dir="rtl">
       {/* Navbar */}
@@ -224,7 +203,7 @@ const App: React.FC = () => {
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <button 
-                  onClick={handleAdminClick}
+                  onClick={() => setMode(AppMode.ADMIN)}
                   className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors text-sm font-medium"
                 >
                   <ShieldCheck className="w-4 h-4" />

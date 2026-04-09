@@ -34,6 +34,9 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
   const [isAnswered, setIsAnswered] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const hasCompleted = useRef(false);
+  const isTransitioning = useRef(false);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentQuestion = activeQuestions[currentIndex];
   
@@ -97,28 +100,47 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
   const clearAllTimers = () => {
     if (optionsIntervalRef.current) clearInterval(optionsIntervalRef.current);
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
   };
 
   const handleTimeUp = () => {
+    if (isAnswered || isTransitioning.current) return;
     setIsAnswered(true);
+    setIsTimerActive(false);
+    
+    // Automatically move to next question after a short delay
+    isTransitioning.current = true;
+    transitionTimeoutRef.current = setTimeout(() => {
+      handleNext("");
+      isTransitioning.current = false;
+    }, 1500);
   };
 
   const handleAnswerSelect = (answer: string) => {
-    if (isAnswered) return; // Prevent changing answer
+    if (isAnswered || isTransitioning.current) return; // Prevent changing answer
     
     setSelectedAnswer(answer);
     setIsAnswered(true);
     setIsTimerActive(false);
 
-    // If it's the last question, submit immediately after a short delay for feedback
-    if (currentIndex === activeQuestions.length - 1) {
-      setTimeout(() => {
-        handleNext(answer);
-      }, 1500);
-    }
+    // Automatically move to next question after a short delay for feedback
+    isTransitioning.current = true;
+    transitionTimeoutRef.current = setTimeout(() => {
+      handleNext(answer);
+      isTransitioning.current = false;
+    }, 1500);
   };
 
   const handleNext = (finalAnswer?: string) => {
+    if (hasCompleted.current) return;
+
+    // Clear any pending transition timeout if manually clicking next
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
+    isTransitioning.current = false;
+
     const currentAns = finalAnswer !== undefined ? finalAnswer : selectedAnswer;
     // Record the answer (even if empty/time up)
     const isCorrect = currentAns.trim().toLowerCase() === currentQuestion.correctAnswer.trim().toLowerCase();
@@ -138,6 +160,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
       setCurrentIndex(currentIndex + 1);
     } else {
       // Complete
+      hasCompleted.current = true;
       const correctCount = newAnswers.filter(a => a.isCorrect).length;
       const result: QuizResult = {
         quizId: quiz.id,
@@ -324,7 +347,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
             )}
 
             <button
-              onClick={() => handleNext()}
+              onClick={handleNext}
               disabled={!isAnswered}
               className={`px-8 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all
                 ${isAnswered 

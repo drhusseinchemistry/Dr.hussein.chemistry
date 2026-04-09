@@ -1,20 +1,13 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# کیمیا - پرسیار و بەرسڤ
 
-# Run and deploy your AI Studio app
+ئەڤە بەرنامەکێ کیمیایێ یە بۆ ئەنجامدانا کویزان.
 
-This contains everything you need to run your app locally.
+## چەوانیا بەلاڤکرنێ ل سەر GitHub:
 
-View your app in AI Studio: https://ai.studio/apps/2f292cf8-c09a-4012-8d46-cd01a5370ef4
+1. ئەڤی کۆدی دناڤ ڕیپۆزیتۆریەکا نوی دا ل سەر GitHub دابنێ.
+2. د بەشێ **Settings** یێ ڕیپۆزیتۆریا خۆ دا، بچە سەر **Pages**.
+3. ل بەشێ **Build and deployment**، ل ژێر **Source**، بژارەیا **GitHub Actions** هەلبژێرە.
+4. هەر دەمێ تو گوهۆڕینەکێ دکەی (Push)، بەرنامە دێ ب شێوەیەکێ خۆکار بەلاڤ بیت.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## تێبینی:
+- فایلێ `firebase-applet-config.json` پێزانینێن Firebase تێدانە، ئەگەر تو دێ ڕیپۆزیتۆریا خۆ کەیە Public، ئاگەهدار بە.
