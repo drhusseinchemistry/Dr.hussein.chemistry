@@ -2,36 +2,12 @@
 <html lang="ku" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#4f46e5" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="پرسیاریێن کیمیایێ" />
-    <link rel="apple-touch-icon" href="/chem-291.jpg" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>پرسیاریێن کیمیایێ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/index.css">
   </head>
   <body>
-    <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
-        Loading...
-      </div>
-    </div>
-    <script type="module" src="./index.tsx"></script>
-    <script>
-      window.onerror = function(msg, url, lineNo, columnNo, error) {
-        console.error('Global error:', msg, url, lineNo, columnNo, error);
-        return false;
-      };
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.error('SW error', err));
-        });
-      }
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -21,6 +21,7 @@ enum AppMode {
 }
 
 const App: React.FC = () => {
+  console.log('App component rendering...');
   const [mode, setMode] = useState<AppMode>(AppMode.HOME);
   const [configError, setConfigError] = useState<string | null>(null);
   
