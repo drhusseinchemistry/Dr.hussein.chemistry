@@ -13,16 +13,16 @@ service cloud.firestore {
       return true; 
     }
 
-    // Quizzes: Anyone can read, only admins (or anyone for now as per simple setup) can write
+    // Quizzes: Anyone can read, only admins (or anyone for now as per simple setup) can write/delete
     match /quizzes/{quizId} {
       allow read: if true;
-      allow write: if true; 
+      allow write, delete: if true; 
     }
 
-    // Submissions: Anyone can create, only admins can read/list
+    // Submissions: Anyone can create, only admins can read/list/delete
     match /submissions/{submissionId} {
       allow create: if true;
-      allow read, list: if true; // We'll keep it open for the admin dashboard to work without complex auth for now
+      allow read, list, delete: if true; 
     }
   }
 }

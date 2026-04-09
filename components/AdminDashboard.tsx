@@ -69,9 +69,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
     if (confirm("تۆ دڵنیای دتەوێت ئەم کویزە ڕەش بکەیتەوە؟")) {
       try {
         await deleteDoc(doc(db, 'quizzes', id));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting quiz:", error);
-        alert("خەلەتیەک چێبوو د ڕەشکرنا کویزێ دا.");
+        alert(`خەلەتیەک چێبوو د ڕەشکرنا کویزێ دا: ${error.message || error}`);
       }
     }
   };
@@ -86,9 +86,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
     if (confirm("تۆ دڵنیای دتەوێت ئەڤی ناڤی ڕەش بکەی؟")) {
       try {
         await deleteDoc(doc(db, 'submissions', id));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting submission:", error);
-        alert("خەلەتیەک چێبوو د ڕەشکرنا ئەنجامی دا.");
+        alert(`خەلەتیەک چێبوو د ڕەشکرنا ئەنجامی دا: ${error.message || error}`);
       }
     }
   };
@@ -109,9 +109,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
         });
         await batch.commit();
         alert("هەمی ئەنجام ب سەرکەفتی هاتنە ڕەشکرن.");
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting all submissions:", error);
-        alert("خەلەتیەک چێبوو د ڕەشکرنا هەمی ئەنجامان دا.");
+        alert(`خەلەتیەک چێبوو د ڕەشکرنا هەمی ئەنجامان دا: ${error.message || error}`);
       }
     }
   };
