@@ -15,11 +15,27 @@
   </head>
   <body>
     <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
-        Loading...
+      <div id="loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; gap: 10px;">
+        <div style="font-size: 24px; font-weight: bold; color: #4f46e5;">...Loading</div>
+        <div id="error-display" style="color: #ef4444; font-size: 14px; max-width: 80%; text-align: center;"></div>
       </div>
     </div>
-    <script type="module" src="./index.tsx"></script>
+    <script>
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        const display = document.getElementById('error-display');
+        if (display) {
+          display.innerHTML = 'Error: ' + msg + '<br><small>' + url + ':' + lineNo + '</small>';
+        }
+        return false;
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+        const display = document.getElementById('error-display');
+        if (display) {
+          display.innerHTML = 'Promise Error: ' + event.reason;
+        }
+      });
+    </script>
+    <script type="module" src="/index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
