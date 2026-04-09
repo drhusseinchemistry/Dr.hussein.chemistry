@@ -182,6 +182,11 @@ const App: React.FC = () => {
                             <span className="bg-indigo-50 text-indigo-600 text-xs px-2 py-1 rounded-md font-bold">
                             {quiz.questions.length} پرسیار
                             </span>
+                            {quiz.maxQuestionsToShow && quiz.maxQuestionsToShow > 0 && (
+                              <span className="bg-green-50 text-green-600 text-xs px-2 py-1 rounded-md font-bold">
+                                ب تنێ {quiz.maxQuestionsToShow} پرسیار
+                              </span>
+                            )}
                         </div>
                         </div>
                         <div className="relative z-10 flex gap-3 w-full md:w-auto">

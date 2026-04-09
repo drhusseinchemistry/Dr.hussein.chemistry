@@ -22,8 +22,9 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
       [qs[i], qs[j]] = [qs[j], qs[i]];
     }
     // Slice
-    if (quiz.maxQuestionsToShow && quiz.maxQuestionsToShow > 0) {
-      return qs.slice(0, quiz.maxQuestionsToShow);
+    const limit = Number(quiz.maxQuestionsToShow);
+    if (!isNaN(limit) && limit > 0) {
+      return qs.slice(0, limit);
     }
     return qs;
   });
@@ -213,7 +214,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
     return baseStyle + "border-gray-200 opacity-50 text-gray-500"; // Other non-selected options
   };
 
-  const progress = ((currentIndex) / quiz.questions.length) * 100;
+  const progress = ((currentIndex) / activeQuestions.length) * 100;
 
   return (
     <div className="max-w-3xl mx-auto">

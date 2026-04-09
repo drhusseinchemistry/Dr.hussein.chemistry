@@ -1748,6 +1748,8 @@ export const INITIAL_QUIZZES: Quiz[] = [
     id: 'chem-main-quiz',
     title: 'ناڤێن پێکهاتێن کیمیایێ',
     description: `${questions.length} پرسیار دەربارەی ناڤ و هێمایێن کیمیایێ`,
-    questions: questions as any[]
+    questions: questions as any[],
+    maxQuestionsToShow: 5,
+    timerSeconds: 20
   }
 ];
