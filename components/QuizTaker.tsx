@@ -330,7 +330,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions - Manual Next Button Removed to prevent freezing */}
         <div className="p-6 bg-gray-50 border-t flex justify-between items-center">
             {isAnswered ? (
                 <div className="flex flex-col gap-1">
@@ -345,18 +345,6 @@ const QuizTaker: React.FC<QuizTakerProps> = ({ quiz, studentInfo, onComplete, on
                     {isTimerActive ? "وەڵام بدەوە پێش ئەوەی کات تەواو بێت" : "چاوەڕێی پرسیار بە..."}
                 </div>
             )}
-
-            <button
-              onClick={handleNext}
-              disabled={!isAnswered}
-              className={`px-8 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all
-                ${isAnswered 
-                    ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200 shadow-md translate-y-0 border border-indigo-200' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed translate-y-1'}`}
-            >
-              {currentIndex === quiz.questions.length - 1 ? 'تەمامکرن' : 'دویڤدا'}
-              <ChevronLeft className="w-5 h-5 rotate-180" />
-            </button>
         </div>
       </div>
     </div>

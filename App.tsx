@@ -203,7 +203,14 @@ const App: React.FC = () => {
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <button 
-                  onClick={() => setMode(AppMode.ADMIN)}
+                  onClick={() => {
+                    const password = prompt("بۆ چوونە ژوورێ، تکایە ڕەمزێ لێبدە:");
+                    if (password === 'hussein1996hussein') {
+                      setMode(AppMode.ADMIN);
+                    } else {
+                      alert("ڕەمز خەلەتە!");
+                    }
+                  }}
                   className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors text-sm font-medium"
                 >
                   <ShieldCheck className="w-4 h-4" />
@@ -248,10 +255,22 @@ const App: React.FC = () => {
           <AdminDashboard 
             onBack={() => setMode(AppMode.HOME)}
             onEditQuiz={(quiz) => {
-              setQuizToEdit(quiz);
-              setMode(AppMode.EDIT);
+              const password = prompt("بۆ دەستکاری کرنا کویزێ، تکایە ڕەمزێ لێبدە:");
+              if (password === 'hussein1996hussein') {
+                setQuizToEdit(quiz);
+                setMode(AppMode.EDIT);
+              } else {
+                alert("ڕەمز خەلەتە!");
+              }
             }}
-            onCreateQuiz={() => setMode(AppMode.CREATE)}
+            onCreateQuiz={() => {
+              const password = prompt("بۆ دروستکرنا کویزێ، تکایە ڕەمزێ لێبدە:");
+              if (password === 'hussein1996hussein') {
+                setMode(AppMode.CREATE);
+              } else {
+                alert("ڕەمز خەلەتە!");
+              }
+            }}
             quizzes={quizzes}
           />
         )}

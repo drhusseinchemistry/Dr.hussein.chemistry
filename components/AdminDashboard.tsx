@@ -77,6 +77,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
   };
 
   const handleDeleteSubmission = async (id: string) => {
+    const password = prompt("بۆ ڕەشکرنا ئەنجامی، تکایە ڕەمزێ لێبدە:");
+    if (password !== 'hussein1996hussein') {
+      alert("ڕەمز خەلەتە!");
+      return;
+    }
+
     if (confirm("تۆ دڵنیای دتەوێت ئەڤی ناڤی ڕەش بکەی؟")) {
       try {
         await deleteDoc(doc(db, 'submissions', id));
@@ -88,6 +94,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
   };
 
   const handleDeleteAllSubmissions = async () => {
+    const password = prompt("بۆ ڕەشکرنا هەمی ئەنجامان، تکایە ڕەمزێ لێبدە:");
+    if (password !== 'hussein1996hussein') {
+      alert("ڕەمز خەلەتە!");
+      return;
+    }
+
     if (confirm("تۆ دڵنیای دتەوێت هەمی ئەنجامان ڕەش بکەی؟ ئەڤ کارە ناهێتە زڤراندن!")) {
       try {
         const snapshot = await getDocs(collection(db, 'submissions'));
