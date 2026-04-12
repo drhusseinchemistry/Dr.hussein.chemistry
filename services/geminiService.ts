@@ -1,20 +1,23 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Question, QuestionType } from "../types";
 
-export const generateQuizAI = async (topic: string, count: number): Promise<Question[]> => {
-  // Initialize inside function to avoid top-level crashes in browser if process is undefined
-  let apiKey = '';
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      apiKey = process.env.API_KEY || '';
+export const generateQuizAI = async (topic: string, count: number, customApiKey?: string): Promise<Question[]> => {
+  // Use custom API key if provided, otherwise fallback to environment
+  let apiKey = customApiKey || '';
+  
+  if (!apiKey) {
+    try {
+      if (typeof process !== 'undefined' && process.env) {
+        apiKey = process.env.API_KEY || '';
+      }
+    } catch (e) {
+      console.warn("Could not access process.env");
     }
-  } catch (e) {
-    console.warn("Could not access process.env");
   }
 
   if (!apiKey) {
     console.warn("API Key missing");
-    return [];
+    throw new Error("API Key missing. Please provide a Gemini API key in settings.");
   }
 
   const ai = new GoogleGenAI({ apiKey });

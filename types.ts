@@ -21,6 +21,12 @@ export interface Quiz {
   maxQuestionsToShow?: number;
   startTime?: string; // ISO string
   endTime?: string;   // ISO string
+  isVisible?: boolean;
+  requireSection?: boolean;
+}
+
+export interface AppSettings {
+  geminiApiKey: string;
 }
 
 export interface StudentInfo {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Question, QuestionType, Quiz } from '../types';
+import { Question, QuestionType, Quiz, AppSettings } from '../types';
 import { generateQuizAI } from '../services/geminiService';
-import { Loader2, Plus, Sparkles, Trash2, Save, Upload, Edit2, ArrowRight, Download } from 'lucide-react';
+import { Loader2, Plus, Sparkles, Trash2, Save, Upload, Edit2, ArrowRight, Download, Eye, EyeOff, UserCheck, UserMinus, Key, X } from 'lucide-react';
+import { db } from '../firebase';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 interface QuizCreatorProps {
   onSave: (quiz: Quiz) => void;
@@ -15,9 +17,13 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
   const [maxQuestionsToShow, setMaxQuestionsToShow] = useState<number | undefined>(undefined);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [isVisible, setIsVisible] = useState(true);
+  const [requireSection, setRequireSection] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [isSavingKey, setIsSavingKey] = useState(false);
 
   // Manual Question State
   const [qText, setQText] = useState('');
@@ -34,9 +40,50 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
         setMaxQuestionsToShow(initialQuiz.maxQuestionsToShow);
         setStartTime(initialQuiz.startTime || '');
         setEndTime(initialQuiz.endTime || '');
+        setIsVisible(initialQuiz.isVisible !== false);
+        setRequireSection(initialQuiz.requireSection !== false);
         setQuestions(initialQuiz.questions);
     }
+    
+    // Load API Key from Firestore
+    const loadSettings = async () => {
+      try {
+        const docRef = doc(db, 'settings', 'gemini');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const settings = docSnap.data() as AppSettings;
+          setGeminiApiKey(settings.geminiApiKey || '');
+        }
+      } catch (err) {
+        console.error("Error loading settings:", err);
+      }
+    };
+    loadSettings();
   }, [initialQuiz]);
+
+  const handleSaveApiKey = async () => {
+    if (!geminiApiKey) return;
+    setIsSavingKey(true);
+    try {
+      await setDoc(doc(db, 'settings', 'gemini'), { geminiApiKey });
+      alert("API Key هاتە پاشکەفتکرن (Save)");
+    } catch (err) {
+      alert("خەلەتیەک چێبوو د پاشکەفتکرنا API Key دا");
+    } finally {
+      setIsSavingKey(false);
+    }
+  };
+
+  const handleClearApiKey = async () => {
+    if (!confirm("ئەرێ تو یێ پشت راستی دێ API Key ژێبەی؟")) return;
+    try {
+      await deleteDoc(doc(db, 'settings', 'gemini'));
+      setGeminiApiKey('');
+      alert("API Key هاتە ژێبرن");
+    } catch (err) {
+      alert("خەلەتیەک چێبوو د ژێبرنا API Key دا");
+    }
+  };
 
   // --- AUTO SAVE LOGIC ---
   const performAutoSave = (updatedQuestions: Question[], updatedTitle: string) => {
@@ -60,7 +107,7 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
     if (!aiTopic) return;
     setIsGenerating(true);
     try {
-      const generatedQuestions = await generateQuizAI(aiTopic, 5);
+      const generatedQuestions = await generateQuizAI(aiTopic, 5, geminiApiKey);
       const newQuestions = [...questions, ...generatedQuestions];
       setQuestions(newQuestions);
       const newTitle = title || `پرسیارێن دەربارەی: ${aiTopic}`;
@@ -207,7 +254,9 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
       timerSeconds,
       maxQuestionsToShow,
       startTime,
-      endTime
+      endTime,
+      isVisible,
+      requireSection
     };
     // This is the ONLY place that triggers the save and exits to Home
     onSave(newQuiz);
@@ -280,6 +329,67 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
               className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
           </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <button
+            onClick={() => setIsVisible(!isVisible)}
+            className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
+              isVisible 
+                ? 'bg-green-50 border-green-200 text-green-700' 
+                : 'bg-gray-50 border-gray-200 text-gray-500'
+            }`}
+          >
+            {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+            <span className="font-medium">{isVisible ? 'کویز یێ دیارە بۆ قوتابیان' : 'کویز یێ ڤەشارتیە'}</span>
+          </button>
+
+          <button
+            onClick={() => setRequireSection(!requireSection)}
+            className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
+              requireSection 
+                ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                : 'bg-orange-50 border-orange-200 text-orange-700'
+            }`}
+          >
+            {requireSection ? <UserCheck className="w-5 h-5" /> : <UserMinus className="w-5 h-5" />}
+            <span className="font-medium">{requireSection ? 'پۆل پێدڤیە' : 'پۆل نە پێدڤیە (ب تنێ ناڤ)'}</span>
+          </button>
+        </div>
+
+        {/* API Key Section */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <Key className="w-4 h-4" />
+            Gemini API Key (بۆ دروستکرنا پرسیاران ب زیرەکی دەستکرد)
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="password"
+              value={geminiApiKey}
+              onChange={(e) => setGeminiApiKey(e.target.value)}
+              className="flex-1 border p-2 rounded-lg text-sm"
+              placeholder="API Key لڤێرە دانە..."
+            />
+            <button
+              onClick={handleSaveApiKey}
+              disabled={isSavingKey || !geminiApiKey}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {isSavingKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              پاشکەفت
+            </button>
+            {geminiApiKey && (
+              <button
+                onClick={handleClearApiKey}
+                className="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200"
+                title="ژێبرنا API Key"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">ئەڤ کلیلە دێ د Firebase دا هێتە پاراستن دا کو هەر جار پێدڤی نەبیت بنڤیسی.</p>
         </div>
 
         {/* Tools Section (AI/Upload/Download) */}

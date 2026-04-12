@@ -90,7 +90,7 @@ const App: React.FC = () => {
         collection(db, 'submissions'), 
         where('quizId', '==', activeQuiz.id),
         where('studentInfo.name', '==', info.name),
-        where('studentInfo.section', '==', info.section)
+        where('studentInfo.section', '==', info.section || 'گشتی')
       );
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
@@ -163,13 +163,13 @@ const App: React.FC = () => {
               </div>
               
               <div className="space-y-4">
-                {quizzes.length === 0 ? (
+                {quizzes.filter(q => q.isVisible !== false).length === 0 ? (
                     <div className="text-center py-20 text-gray-400">
                         <BrainCircuit className="w-16 h-16 mx-auto mb-4 opacity-20" />
                         <p className="text-lg">چ پرسیار بەردەست نینن.</p>
                     </div>
                 ) : (
-                    quizzes.map(quiz => (
+                    quizzes.filter(q => q.isVisible !== false).map(quiz => (
                     <div 
                         key={quiz.id}
                         className="relative overflow-hidden border-2 border-indigo-50 rounded-2xl p-6 hover:border-indigo-200 transition-all flex flex-col md:flex-row justify-between items-center group cursor-pointer bg-white active:scale-[0.99]"
@@ -233,6 +233,7 @@ const App: React.FC = () => {
           <StudentInfoForm 
             onSubmit={handleStudentInfoSubmit}
             onCancel={() => setMode(AppMode.HOME)}
+            requireSection={activeQuiz?.requireSection}
           />
         )}
 

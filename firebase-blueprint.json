@@ -12,9 +12,21 @@
         "questions": {
           "type": "array",
           "items": { "$ref": "Question" }
-        }
+        },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "isVisible": { "type": "boolean" },
+        "requireSection": { "type": "boolean" }
       },
       "required": ["id", "title", "questions"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Global application settings",
+      "type": "object",
+      "properties": {
+        "geminiApiKey": { "type": "string" }
+      }
     },
     "Question": {
       "title": "Question",
@@ -77,6 +89,10 @@
     "/submissions/{submissionId}": {
       "schema": "QuizSubmission",
       "description": "Collection of student quiz results"
+    },
+    "/settings/{settingId}": {
+      "schema": "AppSettings",
+      "description": "Global settings like API keys"
     }
   }
 }

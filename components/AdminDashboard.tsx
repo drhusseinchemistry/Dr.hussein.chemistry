@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { QuizResult, Quiz } from '../types';
-import { ArrowLeft, Download, Copy, Check, Search, Filter, Plus, Edit2, Trash2, Users, BookOpen } from 'lucide-react';
+import { ArrowLeft, Download, Copy, Check, Search, Filter, Plus, Edit2, Trash2, Users, BookOpen, Eye, EyeOff, UserCheck, UserMinus } from 'lucide-react';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -288,6 +288,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
                             نیشاندانا {quiz.maxQuestionsToShow} پرسیاران
                           </span>
                         )}
+                        <span className={`text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 ${quiz.isVisible !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {quiz.isVisible !== false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          {quiz.isVisible !== false ? 'دیارە' : 'ڤەشارتی'}
+                        </span>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 ${quiz.requireSection !== false ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {quiz.requireSection !== false ? <UserCheck className="w-3 h-3" /> : <UserMinus className="w-3 h-3" />}
+                          {quiz.requireSection !== false ? 'پۆل پێدڤیە' : 'ب تنێ ناڤ'}
+                        </span>
                         {(quiz.startTime || quiz.endTime) && (
                           <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
                             وەخت: {quiz.startTime ? new Date(quiz.startTime).toLocaleTimeString('ku-IQ', {hour: '2-digit', minute:'2-digit'}) : '...'} - {quiz.endTime ? new Date(quiz.endTime).toLocaleTimeString('ku-IQ', {hour: '2-digit', minute:'2-digit'}) : '...'}

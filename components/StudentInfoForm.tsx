@@ -5,9 +5,10 @@ import { User, School, ArrowLeft } from 'lucide-react';
 interface StudentInfoFormProps {
   onSubmit: (info: StudentInfo) => void;
   onCancel: () => void;
+  requireSection?: boolean;
 }
 
-const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ onSubmit, onCancel }) => {
+const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ onSubmit, onCancel, requireSection = true }) => {
   const [name, setName] = useState('');
   const [section, setSection] = useState('');
 
@@ -15,10 +16,12 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ onSubmit, onCancel })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && section) {
-      onSubmit({ name, section });
+    if (name.trim() && (!requireSection || section)) {
+      onSubmit({ name, section: requireSection ? section : 'گشتی' });
     }
   };
+
+  const isFormValid = name.trim() && (!requireSection || section);
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
@@ -46,34 +49,36 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ onSubmit, onCancel })
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <School className="w-4 h-4 text-indigo-500" />
-              شوعبە (پۆل)
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {sections.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSection(s)}
-                  className={`p-3 rounded-xl font-bold text-lg transition-all border-2 ${
-                    section === s
-                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-indigo-200'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+          {requireSection && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <School className="w-4 h-4 text-indigo-500" />
+                شوعبە (پۆل)
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                {sections.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSection(s)}
+                    className={`p-3 rounded-xl font-bold text-lg transition-all border-2 ${
+                      section === s
+                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-105'
+                        : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-indigo-200'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             type="submit"
-            disabled={!name.trim() || !section}
+            disabled={!isFormValid}
             className={`w-full p-4 rounded-2xl font-bold text-xl transition-all shadow-lg ${
-              name.trim() && section
+              isFormValid
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
