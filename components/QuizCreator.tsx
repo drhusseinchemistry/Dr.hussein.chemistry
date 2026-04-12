@@ -168,13 +168,16 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
           return;
         }
 
-        const newQuestions: Question[] = json.map((q: any) => ({
+        const newQuestions: Question[] = json.map((q: any) => {
+          const type = q.type?.toUpperCase() || QuestionType.MULTIPLE_CHOICE;
+          return {
              id: Math.random().toString(36).substr(2, 9),
              text: q.text || q.question || "بێ ناڤ",
-             type: q.type || QuestionType.MULTIPLE_CHOICE,
+             type: type as QuestionType,
              options: Array.isArray(q.options) ? q.options : [],
-             correctAnswer: q.correctAnswer || ""
-        })).filter(q => q.text && q.correctAnswer);
+             correctAnswer: String(q.correctAnswer || "")
+          };
+        }).filter(q => q.text && q.correctAnswer);
 
         if (newQuestions.length === 0) {
             alert("چ پرسیارێن دروست د فایلێ تە دا نەبون.");
@@ -195,13 +198,20 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
   };
 
   const addOrUpdateManualQuestion = () => {
-    if (!qText || !qCorrect) return;
+    if (!qText.trim()) {
+      alert("تکایە دەقێ پرسیارێ بنڤیسە.");
+      return;
+    }
+    if (!qCorrect.trim()) {
+      alert("تکایە بەرسڤا راست هەلبژێرە یان بنڤیسە.");
+      return;
+    }
 
     const newQ: Question = {
       id: editingQuestionId || Math.random().toString(36).substr(2, 9),
       text: qText,
       type: qType,
-      options: qType === QuestionType.MULTIPLE_CHOICE ? qOptions : undefined,
+      options: qType === QuestionType.MULTIPLE_CHOICE ? qOptions : [],
       correctAnswer: qCorrect
     };
 
@@ -222,6 +232,15 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
     setQCorrect('');
     setQType(QuestionType.MULTIPLE_CHOICE);
     // Remove scroll logic to prevent jumping
+  };
+
+  const getQuestionTypeKurdish = (type: QuestionType) => {
+    switch (type) {
+      case QuestionType.MULTIPLE_CHOICE: return 'هەلبژارتن';
+      case QuestionType.TRUE_FALSE: return 'راست / خەلەت';
+      case QuestionType.FILL_BLANK: return 'بوشایی';
+      default: return type;
+    }
   };
 
   const editQuestion = (q: Question) => {
@@ -252,11 +271,11 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
       description: `ژمارا پرسیاران: ${questions.length}`,
       questions,
       timerSeconds,
-      maxQuestionsToShow,
-      startTime,
-      endTime,
-      isVisible,
-      requireSection
+      maxQuestionsToShow: maxQuestionsToShow || 0,
+      startTime: startTime || "",
+      endTime: endTime || "",
+      isVisible: isVisible !== false,
+      requireSection: requireSection !== false
     };
     // This is the ONLY place that triggers the save and exits to Home
     onSave(newQuiz);
@@ -568,7 +587,7 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
                 <div className="flex items-center gap-2 mb-1">
                     <span className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-bold">{idx + 1}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded border ${q.type === QuestionType.MULTIPLE_CHOICE ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-purple-50 text-purple-600 border-purple-100'}`}>
-                        {q.type === QuestionType.MULTIPLE_CHOICE ? 'هەڵبژاردن' : q.type}
+                        {getQuestionTypeKurdish(q.type)}
                     </span>
                 </div>
                 <div className="font-medium text-gray-800">{q.text}</div>
