@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, writeBatch, where, setDoc } from 'firebase/firestore';
 import { QuizResult, Quiz } from '../types';
 import { ArrowLeft, Download, Copy, Check, Search, Filter, Plus, Edit2, Trash2, Users, BookOpen, Eye, EyeOff, UserCheck, UserMinus } from 'lucide-react';
 
