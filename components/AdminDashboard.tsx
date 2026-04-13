@@ -130,18 +130,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
       return;
     }
 
-    if (confirm("تۆ دڵنیای دتەوێت هەمی ئەنجامان ڕەش بکەی؟ ئەڤ کارە ناهێتە زڤراندن!")) {
+    const quizTitle = selectedQuizId === 'All' ? 'هەمی' : quizzes.find(q => q.id === selectedQuizId)?.title;
+    if (confirm(`تۆ دڵنیای دتەوێت هەمی ئەنجامێن [${quizTitle}] ڕەش بکەی؟ ئەڤ کارە ناهێتە زڤراندن!`)) {
       try {
-        const snapshot = await getDocs(collection(db, 'submissions'));
+        let q = query(collection(db, 'submissions'));
+        if (selectedQuizId !== 'All') {
+          q = query(collection(db, 'submissions'), where('quizId', '==', selectedQuizId));
+        }
+        
+        const snapshot = await getDocs(q);
         const batch = writeBatch(db);
         snapshot.docs.forEach((doc) => {
           batch.delete(doc.ref);
         });
         await batch.commit();
-        alert("هەمی ئەنجام ب سەرکەفتی هاتنە ڕەشکرن.");
+        alert("ئەنجام ب سەرکەفتی هاتنە ڕەشکرن.");
       } catch (error: any) {
-        console.error("Error deleting all submissions:", error);
-        alert(`خەلەتیەک چێبوو د ڕەشکرنا هەمی ئەنجامان دا: ${error.message || error}`);
+        console.error("Error deleting submissions:", error);
+        alert(`خەلەتیەک چێبوو د ڕەشکرنا ئەنجامان دا: ${error.message || error}`);
       }
     }
   };
@@ -321,9 +327,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
                     </button>
                   </div>
                   
-                  <div className="p-6 overflow-y-auto flex-grow space-y-4">
+                  <div className="p-6 overflow-y-auto flex-grow space-y-4 scroll-smooth">
                     {viewingSubmission.answers.map((ans, idx) => (
-                      <div key={idx} className={`p-4 rounded-2xl border-2 ${ans.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-red-100 bg-red-50/30'}`}>
+                      <div key={idx} className={`p-4 rounded-2xl border-2 ${ans.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-red-100 bg-red-50/30'} ${idx === 0 ? 'mt-2' : ''}`}>
                         <div className="flex justify-between items-start mb-2">
                           <span className="text-xs font-bold bg-gray-200 px-2 py-0.5 rounded-full">{idx + 1}</span>
                           <button 

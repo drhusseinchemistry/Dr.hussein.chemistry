@@ -7,10 +7,10 @@ service cloud.firestore {
       allow write, delete: if true; 
     }
 
-    // Submissions: Anyone can create, only admins can read/list/delete
+    // Submissions: Anyone can create, only admins can read/list/delete/update
     match /submissions/{submissionId} {
       allow create: if true;
-      allow read, list, delete: if true; 
+      allow read, list, delete, update: if true; 
     }
 
     // Settings: Allow read and write for API key management

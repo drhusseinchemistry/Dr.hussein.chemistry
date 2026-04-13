@@ -268,10 +268,32 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
   };
 
   const handleManualSave = () => {
-    if (!title || questions.length === 0) {
-      alert("هیڤیە ناڤەکێ دانە پرسیاران و کێماتی ئێک پرسیار هەبیت");
+    if (!title.trim()) {
+      alert("هیڤیە ناڤەکێ بۆ کویزی بنڤیسە.");
       return;
     }
+    if (questions.length === 0) {
+      alert("هیڤیە کێماتی ئێک پرسیارێ زێدە بکە.");
+      return;
+    }
+
+    // Validate each question
+    for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q.text.trim()) {
+            alert(`پرسیارا ژمارە ${i + 1} دەقێ وێ یێ بەتالە.`);
+            return;
+        }
+        if (!q.correctAnswer.trim()) {
+            alert(`پرسیارا ژمارە ${i + 1} بەرسڤا وێ یا راست نەهاتیە دیارکرن.`);
+            return;
+        }
+        if (q.type === QuestionType.MULTIPLE_CHOICE && (!q.options || q.options.some(opt => !opt.trim()))) {
+            alert(`پرسیارا ژمارە ${i + 1} هەمی بژاردەیێن وێ نەهاتینە تژیکرن.`);
+            return;
+        }
+    }
+
     const sanitizedQuestions = questions.map(q => {
       const sq: any = {
         id: q.id,
