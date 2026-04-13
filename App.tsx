@@ -49,11 +49,6 @@ const App: React.FC = () => {
       const fbQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quiz));
       if (fbQuizzes.length > 0) {
         setQuizzes(fbQuizzes);
-      } else if (quizzes.length > 0) {
-        // Bootstrap initial quizzes to Firebase if empty
-        quizzes.forEach(async (quiz) => {
-          await setDoc(doc(db, 'quizzes', quiz.id), quiz);
-        });
       }
     });
     return () => unsubscribe();
@@ -126,8 +121,34 @@ const App: React.FC = () => {
       setMode(AppMode.HOME);
       setQuizToEdit(null);
     } catch (error) {
-      console.error("Error saving quiz:", error);
+      console.error("Error saving quiz to Firestore:", error);
       alert("خەلەتیەک چێبوو د پاراستنا پرسیاران دا.");
+    }
+  };
+
+  const [searchName, setSearchName] = useState('');
+  const [searchResults, setSearchResults] = useState<QuizResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleStudentSearch = async () => {
+    if (!searchName.trim()) return;
+    setIsSearching(true);
+    try {
+      const q = query(
+        collection(db, 'submissions'),
+        where('studentInfo.name', '==', searchName.trim())
+      );
+      const snapshot = await getDocs(q);
+      const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizResult));
+      setSearchResults(results);
+      if (results.length === 0) {
+        alert("چ ئەنجام بۆ ئەڤی ناڤی نەهاتنە دیتن.");
+      }
+    } catch (e) {
+      console.error("Error searching results:", e);
+      alert("خەلەتیەک چێبوو د لێگەریانێ دا.");
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -207,6 +228,49 @@ const App: React.FC = () => {
               </div>
 
               <div className="mt-10 flex flex-col items-center gap-4">
+                <div className="w-full max-w-sm bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                  <h4 className="text-sm font-bold text-indigo-700 mb-2 text-center">لێگەریان ل نمرێ (ب تنێ ناڤێ خۆ بنڤیسە)</h4>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="ناڤێ تە یێ سیانی..."
+                      value={searchName}
+                      onChange={(e) => setSearchName(e.target.value)}
+                      className="flex-grow p-2 rounded-xl border-2 border-indigo-200 outline-none focus:border-indigo-500 text-sm"
+                    />
+                    <button 
+                      onClick={handleStudentSearch}
+                      disabled={isSearching}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all disabled:opacity-50"
+                    >
+                      {isSearching ? '...' : 'لێگەریان'}
+                    </button>
+                  </div>
+                  {searchResults.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {searchResults.map((res, i) => (
+                        <div key={i} className="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-gray-700 text-sm">{quizzes.find(q => q.id === res.quizId)?.title || 'کویز'}</span>
+                            <span className={`font-black ${res.scorePercentage >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                              {Math.round(res.scorePercentage)}%
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-400 mt-1">
+                            {new Date(res.timestamp || 0).toLocaleString('ku-IQ')}
+                          </div>
+                        </div>
+                      ))}
+                      <button 
+                        onClick={() => setSearchResults([])}
+                        className="w-full text-[10px] text-indigo-500 hover:underline mt-1"
+                      >
+                        پاککرنەوەی ئەنجامەکان
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button 
                   onClick={() => {
                     const password = prompt("بۆ چوونە ژوورێ، تکایە ڕەمزێ لێبدە:");

@@ -68,6 +68,7 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
       await setDoc(doc(db, 'settings', 'gemini'), { geminiApiKey });
       alert("API Key هاتە پاشکەفتکرن (Save)");
     } catch (err) {
+      console.error("Error saving API key:", err);
       alert("خەلەتیەک چێبوو د پاشکەفتکرنا API Key دا");
     } finally {
       setIsSavingKey(false);
@@ -170,13 +171,16 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
 
         const newQuestions: Question[] = json.map((q: any) => {
           const type = q.type?.toUpperCase() || QuestionType.MULTIPLE_CHOICE;
-          return {
+          const question: Question = {
              id: Math.random().toString(36).substr(2, 9),
              text: q.text || q.question || "بێ ناڤ",
              type: type as QuestionType,
-             options: Array.isArray(q.options) ? q.options : [],
              correctAnswer: String(q.correctAnswer || "")
           };
+          if (type === QuestionType.MULTIPLE_CHOICE && Array.isArray(q.options)) {
+            question.options = q.options;
+          }
+          return question;
         }).filter(q => q.text && q.correctAnswer);
 
         if (newQuestions.length === 0) {
@@ -211,9 +215,12 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
       id: editingQuestionId || Math.random().toString(36).substr(2, 9),
       text: qText,
       type: qType,
-      options: qType === QuestionType.MULTIPLE_CHOICE ? qOptions : [],
       correctAnswer: qCorrect
     };
+
+    if (qType === QuestionType.MULTIPLE_CHOICE) {
+      newQ.options = qOptions;
+    }
 
     let updatedQuestions: Question[];
 
@@ -265,11 +272,24 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onSave, onCancel, initialQuiz
       alert("هیڤیە ناڤەکێ دانە پرسیاران و کێماتی ئێک پرسیار هەبیت");
       return;
     }
+    const sanitizedQuestions = questions.map(q => {
+      const sq: any = {
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        correctAnswer: q.correctAnswer
+      };
+      if (q.type === QuestionType.MULTIPLE_CHOICE && q.options) {
+        sq.options = q.options;
+      }
+      return sq;
+    });
+
     const newQuiz: Quiz = {
       id: initialQuiz ? initialQuiz.id : Math.random().toString(36).substr(2, 9),
       title,
       description: `ژمارا پرسیاران: ${questions.length}`,
-      questions,
+      questions: sanitizedQuestions,
       timerSeconds,
       maxQuestionsToShow: maxQuestionsToShow || 0,
       startTime: startTime || "",

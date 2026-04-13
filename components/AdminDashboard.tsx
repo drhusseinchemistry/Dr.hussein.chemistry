@@ -14,18 +14,48 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onCreateQuiz, quizzes }) => {
   const [submissions, setSubmissions] = useState<QuizResult[]>([]);
   const [activeTab, setActiveTab] = useState<'submissions' | 'quizzes'>('submissions');
+  const [selectedQuizId, setSelectedQuizId] = useState<string | 'All'>('All');
+  const [viewingSubmission, setViewingSubmission] = useState<QuizResult | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sectionFilter, setSectionFilter] = useState('All');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'submissions'), orderBy('timestamp', 'desc'));
+    let q = query(collection(db, 'submissions'), orderBy('timestamp', 'desc'));
+    
+    if (selectedQuizId !== 'All') {
+      q = query(collection(db, 'submissions'), where('quizId', '==', selectedQuizId), orderBy('timestamp', 'desc'));
+    }
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizResult));
       setSubmissions(data);
     });
     return () => unsubscribe();
-  }, []);
+  }, [selectedQuizId]);
+
+  const handleUpdateSubmission = async (updated: QuizResult) => {
+    if (!updated.id) return;
+    try {
+      // Recalculate score
+      const correctCount = updated.answers.filter(a => a.isCorrect).length;
+      const total = updated.totalQuestions;
+      const newScore = (correctCount / total) * 100;
+      
+      const finalSubmission = {
+        ...updated,
+        correctAnswers: correctCount,
+        scorePercentage: newScore
+      };
+
+      await setDoc(doc(db, 'submissions', updated.id), finalSubmission);
+      setViewingSubmission(null);
+      alert("ئەنجام ب سەرکەفتی هاتە نووکرن.");
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      alert("خەلەتیەک چێبوو د نووکرنا ئەنجامی دا.");
+    }
+  };
 
   const filteredSubmissions = submissions.filter(s => {
     const matchesSearch = s.studentInfo?.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -147,6 +177,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
 
         {activeTab === 'submissions' ? (
           <>
+            <div className="mb-6 bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+              <label className="block text-sm font-bold text-indigo-700 mb-2">کویزێ هەلبژێرە بۆ بینینا ئەنجامان:</label>
+              <select 
+                value={selectedQuizId}
+                onChange={(e) => setSelectedQuizId(e.target.value)}
+                className="w-full p-3 bg-white border-2 border-indigo-100 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold"
+              >
+                <option value="All">هەمی کویز (گشتی)</option>
+                {quizzes.map(q => (
+                  <option key={q.id} value={q.id}>{q.title}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-2">
                 <button 
@@ -239,13 +283,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
                           {new Date(s.timestamp || 0).toLocaleString('ku-IQ')}
                         </td>
                         <td className="py-4 text-center">
-                          <button 
-                            onClick={() => s.id && handleDeleteSubmission(s.id)}
-                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                            title="ڕەشکرن"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex justify-center gap-1">
+                            <button 
+                                onClick={() => setViewingSubmission(s)}
+                                className="p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                title="بینین و دەستکاری"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={() => s.id && handleDeleteSubmission(s.id)}
+                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="ڕەشکرن"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -253,6 +306,69 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
                 </tbody>
               </table>
             </div>
+
+            {/* Submission Detail Modal */}
+            {viewingSubmission && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+                  <div className="p-6 border-b flex justify-between items-center bg-indigo-50">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">{viewingSubmission.studentInfo?.name}</h3>
+                      <p className="text-sm text-indigo-600 font-bold">شوعبا {viewingSubmission.studentInfo?.section} | نمرە: {Math.round(viewingSubmission.scorePercentage)}%</p>
+                    </div>
+                    <button onClick={() => setViewingSubmission(null)} className="p-2 hover:bg-white rounded-full transition-colors">
+                      <ArrowLeft className="w-5 h-5 rotate-180" />
+                    </button>
+                  </div>
+                  
+                  <div className="p-6 overflow-y-auto flex-grow space-y-4">
+                    {viewingSubmission.answers.map((ans, idx) => (
+                      <div key={idx} className={`p-4 rounded-2xl border-2 ${ans.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-red-100 bg-red-50/30'}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-bold bg-gray-200 px-2 py-0.5 rounded-full">{idx + 1}</span>
+                          <button 
+                            onClick={() => {
+                              const newAnswers = [...viewingSubmission.answers];
+                              newAnswers[idx] = { ...ans, isCorrect: !ans.isCorrect };
+                              setViewingSubmission({ ...viewingSubmission, answers: newAnswers });
+                            }}
+                            className={`text-xs font-bold px-3 py-1 rounded-lg border transition-all ${ans.isCorrect ? 'bg-green-600 text-white border-green-600' : 'bg-red-600 text-white border-red-600'}`}
+                          >
+                            {ans.isCorrect ? 'دروستە' : 'خەلەتە'} (گۆڕین)
+                          </button>
+                        </div>
+                        <p className="font-bold text-gray-800 mb-2">{ans.questionText}</p>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <span className="text-gray-400 block text-[10px]">بەرسڤا قوتابی:</span>
+                            <span className="font-bold">{ans.answer}</span>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <span className="text-gray-400 block text-[10px]">بەرسڤا راست:</span>
+                            <span className="font-bold text-green-600">{ans.correctAnswer}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
+                    <button 
+                      onClick={() => setViewingSubmission(null)}
+                      className="px-6 py-2 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
+                    >
+                      پەشیمان بوون
+                    </button>
+                    <button 
+                      onClick={() => handleUpdateSubmission(viewingSubmission)}
+                      className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md"
+                    >
+                      پاشکەفتکرنا گۆڕانکاریان
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="space-y-4">
