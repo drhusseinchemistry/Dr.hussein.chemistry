@@ -4,6 +4,7 @@ import ResultsView from './components/ResultsView';
 import QuizCreator from './components/QuizCreator';
 import StudentInfoForm from './components/StudentInfoForm';
 import AdminDashboard from './components/AdminDashboard';
+import PollSection from './components/PollSection';
 import { Quiz, QuizResult, StudentInfo } from './types';
 import { BrainCircuit, PlayCircle, ShieldCheck } from 'lucide-react';
 import { INITIAL_QUIZZES } from './sampleData';
@@ -226,6 +227,8 @@ const App: React.FC = () => {
                     ))
                 )}
               </div>
+
+              <PollSection />
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <div className="w-full max-w-sm bg-indigo-50 p-4 rounded-2xl border border-indigo-100">

@@ -25,6 +25,23 @@ export interface Quiz {
   requireSection?: boolean;
 }
 
+export interface Poll {
+  id: string;
+  question: string;
+  type: 'CHOICE' | 'TEXT';
+  options?: string[]; // For CHOICE type
+  isVisible: boolean;
+  timestamp: number;
+}
+
+export interface PollResponse {
+  id?: string;
+  pollId: string;
+  studentName: string;
+  response: string; // Choice text or open-ended text
+  timestamp: number;
+}
+
 export interface AppSettings {
   geminiApiKey: string;
 }

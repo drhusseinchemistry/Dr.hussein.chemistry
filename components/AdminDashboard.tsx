@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, writeBatch, where, setDoc } from 'firebase/firestore';
 import { QuizResult, Quiz } from '../types';
-import { ArrowLeft, Download, Copy, Check, Search, Filter, Plus, Edit2, Trash2, Users, BookOpen, Eye, EyeOff, UserCheck, UserMinus } from 'lucide-react';
+import { ArrowLeft, Download, Copy, Check, Search, Filter, Plus, Edit2, Trash2, Users, BookOpen, Eye, EyeOff, UserCheck, UserMinus, BarChart3 } from 'lucide-react';
+
+import PollManager from './PollManager';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -13,7 +15,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onCreateQuiz, quizzes }) => {
   const [submissions, setSubmissions] = useState<QuizResult[]>([]);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'quizzes'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'quizzes' | 'polls'>('submissions');
   const [selectedQuizId, setSelectedQuizId] = useState<string | 'All'>('All');
   const [viewingSubmission, setViewingSubmission] = useState<QuizResult | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -177,6 +179,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
             >
               <BookOpen className="w-4 h-4" />
               کویز
+            </button>
+            <button 
+              onClick={() => setActiveTab('polls')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'polls' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              راپرسی
             </button>
           </div>
         </div>
@@ -376,7 +385,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === 'quizzes' ? (
           <div className="space-y-4">
             <div className="flex justify-end mb-4">
               <button 
@@ -446,6 +455,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onEditQuiz, onC
               )}
             </div>
           </div>
+        ) : (
+          <PollManager />
         )}
       </div>
     </div>

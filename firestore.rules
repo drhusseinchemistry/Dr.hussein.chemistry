@@ -17,5 +17,17 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read, write: if true;
     }
+
+    // Polls: Anyone can read, only admins can write
+    match /polls/{pollId} {
+      allow read: if true;
+      allow write, delete: if true;
+    }
+
+    // Poll Responses: Anyone can create, only admins can read/list
+    match /poll_responses/{responseId} {
+      allow create: if true;
+      allow read, list, delete: if true;
+    }
   }
 }

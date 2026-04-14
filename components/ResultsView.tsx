@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { QuizResult } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Award, CheckCircle, XCircle, Send, Loader2, Check } from 'lucide-react';
+import PollSection from './PollSection';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -121,6 +122,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result, onHome }) => {
           </button>
         </div>
       </div>
+
+      <PollSection studentName={result.studentInfo?.name} />
     </div>
   );
 };
