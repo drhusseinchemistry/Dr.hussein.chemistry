@@ -15,12 +15,45 @@ const PollManager: React.FC = () => {
   const [viewingResults, setViewingResults] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'polls'), orderBy('order', 'asc'));
+    // Fetch all polls and sort in memory to ensure polls without 'order' field are visible
+    const q = query(collection(db, 'polls'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setPolls(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Poll)));
+      const fetchedPolls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Poll));
+      fetchedPolls.sort((a, b) => (a.order || 0) - (b.order || 0));
+      setPolls(fetchedPolls);
     });
     return () => unsubscribe();
   }, []);
+
+  const cleanupDuplicates = async () => {
+    if (!confirm("تۆ دڵنیای دتەوێت هەمی پرسیارێن دووبارە ڕەش بکەی؟ ب تنێ ئێک دانە ژ هەر پرسیارەکێ دێ مینیت.")) return;
+    
+    try {
+      const seen = new Set();
+      const batch = writeBatch(db);
+      let count = 0;
+
+      polls.forEach(poll => {
+        const normalizedQuestion = poll.question.trim();
+        if (seen.has(normalizedQuestion)) {
+          batch.delete(doc(db, 'polls', poll.id));
+          count++;
+        } else {
+          seen.add(normalizedQuestion);
+        }
+      });
+
+      if (count > 0) {
+        await batch.commit();
+        alert(`${count} پرسیارێن دووبارە هاتنە ڕەش کرن.`);
+      } else {
+        alert("چ پرسیارێن دووبارە نەهاتنە دیتن.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("خەلەتیەک چێبوو د کاتی پاککرنێ دا.");
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'poll_responses'), orderBy('timestamp', 'desc'));
@@ -111,15 +144,23 @@ const PollManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-black text-gray-800">رێڤەبەریا راپرسیان</h2>
-        <button 
-          onClick={() => setIsCreating(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          راپرسیەکا نوی
-        </button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button 
+            onClick={cleanupDuplicates}
+            className="flex-1 sm:flex-none bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-bold border-2 border-amber-100 hover:bg-amber-100 transition-all text-sm"
+          >
+            پاککرنا دووبارەبوویان
+          </button>
+          <button 
+            onClick={() => setIsCreating(true)}
+            className="flex-1 sm:flex-none bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            راپرسیەکا نوی
+          </button>
+        </div>
       </div>
 
       {isCreating && (
