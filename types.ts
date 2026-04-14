@@ -31,6 +31,8 @@ export interface Poll {
   type: 'CHOICE' | 'TEXT';
   options?: string[]; // For CHOICE type
   isVisible: boolean;
+  requireName: boolean;
+  order: number;
   timestamp: number;
 }
 

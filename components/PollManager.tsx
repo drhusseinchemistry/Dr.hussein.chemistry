@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, addDoc, deleteDoc, doc, updateDoc, getDocs, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, deleteDoc, doc, updateDoc, getDocs, where, writeBatch } from 'firebase/firestore';
 import { Poll, PollResponse } from '../types';
-import { Plus, Trash2, Eye, EyeOff, BarChart3, MessageSquare, Send, X, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, BarChart3, MessageSquare, Send, X, CheckCircle2, ChevronUp, ChevronDown } from 'lucide-react';
 
 const PollManager: React.FC = () => {
   const [polls, setPolls] = useState<Poll[]>([]);
@@ -11,10 +11,11 @@ const PollManager: React.FC = () => {
   const [newQuestion, setNewQuestion] = useState('');
   const [newType, setNewType] = useState<'CHOICE' | 'TEXT'>('CHOICE');
   const [newOptions, setNewOptions] = useState<string[]>(['بەلێ', 'نەخێر']);
+  const [newRequireName, setNewRequireName] = useState(true);
   const [viewingResults, setViewingResults] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'polls'), orderBy('timestamp', 'desc'));
+    const q = query(collection(db, 'polls'), orderBy('order', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setPolls(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Poll)));
     });
@@ -32,25 +33,52 @@ const PollManager: React.FC = () => {
   const handleCreatePoll = async () => {
     if (!newQuestion.trim()) return;
     try {
+      const maxOrder = polls.length > 0 ? Math.max(...polls.map(p => p.order || 0)) : 0;
       await addDoc(collection(db, 'polls'), {
         question: newQuestion,
         type: newType,
         options: newType === 'CHOICE' ? newOptions.filter(o => o.trim()) : [],
         isVisible: true,
+        requireName: newRequireName,
+        order: maxOrder + 1,
         timestamp: Date.now()
       });
       setIsCreating(false);
       setNewQuestion('');
       setNewOptions(['بەلێ', 'نەخێر']);
+      setNewRequireName(true);
     } catch (e) {
       console.error(e);
       alert("خەلەتیەک چێبوو د دروستکرنا راپرسیێ دا.");
     }
   };
 
+  const movePoll = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= polls.length) return;
+
+    const pollA = polls[index];
+    const pollB = polls[newIndex];
+
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'polls', pollA.id), { order: pollB.order });
+      batch.update(doc(db, 'polls', pollB.id), { order: pollA.order });
+      await batch.commit();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const toggleVisibility = async (poll: Poll) => {
     try {
       await updateDoc(doc(db, 'polls', poll.id), { isVisible: !poll.isVisible });
+    } catch (e) { console.error(e); }
+  };
+
+  const toggleRequireName = async (poll: Poll) => {
+    try {
+      await updateDoc(doc(db, 'polls', poll.id), { requireName: !poll.requireName });
     } catch (e) { console.error(e); }
   };
 
@@ -154,6 +182,19 @@ const PollManager: React.FC = () => {
             </div>
           )}
 
+          <div className="flex items-center gap-2 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+            <input 
+              type="checkbox"
+              id="requireName"
+              checked={newRequireName}
+              onChange={(e) => setNewRequireName(e.target.checked)}
+              className="w-5 h-5 accent-indigo-600"
+            />
+            <label htmlFor="requireName" className="text-sm font-bold text-indigo-700 cursor-pointer">
+              داخازا ناڤێ قوتابی بکە
+            </label>
+          </div>
+
           <div className="flex gap-2 pt-2">
             <button 
               onClick={handleCreatePoll}
@@ -191,6 +232,22 @@ const PollManager: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-1">
+                  <div className="flex flex-col gap-1 mr-2">
+                    <button 
+                      onClick={() => movePoll(polls.indexOf(poll), 'up')}
+                      disabled={polls.indexOf(poll) === 0}
+                      className="p-1 text-gray-400 hover:text-indigo-600 disabled:opacity-30"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => movePoll(polls.indexOf(poll), 'down')}
+                      disabled={polls.indexOf(poll) === polls.length - 1}
+                      className="p-1 text-gray-400 hover:text-indigo-600 disabled:opacity-30"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </div>
                   <button 
                     onClick={() => setViewingResults(isViewing ? null : poll.id)}
                     className={`p-2 rounded-xl transition-all ${isViewing ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
