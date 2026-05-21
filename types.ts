@@ -71,3 +71,28 @@ export interface QuizResult {
   studentInfo?: StudentInfo;
   timestamp?: number;
 }
+
+export interface CharityField {
+  id: string;
+  label: string;
+  type: 'TEXT' | 'CHECKBOX';
+  options?: string[]; // Used when type is CHECKBOX
+  required: boolean;
+  order: number;
+}
+
+export interface CharityFormConfig {
+  id?: string;
+  title: string;
+  description: string;
+  isVisible: boolean;
+  requireGps: boolean;
+  fields: CharityField[];
+}
+
+export interface CharitySubmission {
+  id?: string;
+  timestamp: number;
+  responses: Record<string, string | string[]>;
+  gpsLocation?: { lat: number; lng: number } | null;
+}

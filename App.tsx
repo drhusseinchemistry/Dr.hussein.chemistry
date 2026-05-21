@@ -11,6 +11,8 @@ import { INITIAL_QUIZZES } from './sampleData';
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy, setDoc, doc, addDoc, getDocs, where } from 'firebase/firestore';
 
+import CharityFormView from './components/CharityFormView';
+
 enum AppMode {
   HOME = 'HOME',
   STUDENT_INFO = 'STUDENT_INFO',
@@ -18,6 +20,7 @@ enum AppMode {
   RESULTS = 'RESULTS',
   EDIT = 'EDIT',
   CREATE = 'CREATE',
+  CHARITY_FORM = 'CHARITY_FORM',
   ADMIN = 'ADMIN'
 }
 
@@ -228,7 +231,17 @@ const App: React.FC = () => {
                 )}
               </div>
 
+              <div className="mt-8 mb-8">
+                <button 
+                  onClick={() => setMode(AppMode.CHARITY_FORM)}
+                  className="w-full bg-emerald-50 text-emerald-700 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-emerald-100 transition-all border-2 border-emerald-100/50"
+                  >
+                  ❤️ فۆرمێ هانکاریێ (بۆ کەسێن هەژی)
+                  </button>
+              </div>
+
               <PollSection />
+
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <div className="w-full max-w-sm bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
@@ -302,6 +315,10 @@ const App: React.FC = () => {
             onCancel={() => setMode(AppMode.HOME)}
             requireSection={activeQuiz?.requireSection}
           />
+        )}
+
+        {mode === AppMode.CHARITY_FORM && (
+            <CharityFormView onBack={() => setMode(AppMode.HOME)} />
         )}
 
         {mode === AppMode.TAKE && activeQuiz && (

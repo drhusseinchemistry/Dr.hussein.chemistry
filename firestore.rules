@@ -29,5 +29,17 @@ service cloud.firestore {
       allow create: if true;
       allow read, list, delete: if true;
     }
+
+    // Charity Forms: Anyone can read, only admins can write
+    match /charity_forms/{formId} {
+      allow read: if true;
+      allow write, delete: if true; 
+    }
+
+    // Charity Submissions: Anyone can create, only admins can read/list/delete
+    match /charity_submissions/{subId} {
+      allow create: if true;
+      allow read, list, delete: if true;
+    }
   }
 }
