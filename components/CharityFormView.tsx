@@ -18,13 +18,20 @@ const CharityFormView: React.FC<Props> = ({ onBack }) => {
     const [gettingLocation, setGettingLocation] = useState(false);
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, 'charity_forms', 'main_form'), (snapshot) => {
-            if (snapshot.exists() && snapshot.data().isVisible) {
-                setConfig({ id: snapshot.id, ...snapshot.data() } as CharityFormConfig);
-            } else {
-                setConfig(null); // form doesn't exist or is hidden
+        const unsubscribe = onSnapshot(
+            doc(db, 'charity_forms', 'main_form'), 
+            (snapshot) => {
+                if (snapshot.exists() && snapshot.data().isVisible) {
+                    setConfig({ id: snapshot.id, ...snapshot.data() } as CharityFormConfig);
+                } else {
+                    setConfig(null); // form doesn't exist or is hidden
+                }
+            },
+            (error) => {
+                console.error("Error loading form:", error);
+                setConfig(null);
             }
-        });
+        );
         return () => unsubscribe();
     }, []);
 

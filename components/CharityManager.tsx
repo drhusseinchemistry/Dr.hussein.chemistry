@@ -30,23 +30,40 @@ const CharityManager: React.FC = () => {
     };
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, 'charity_forms', 'main_form'), (docSnapshot) => {
-            if (docSnapshot.exists()) {
-                setConfig({ id: docSnapshot.id, ...docSnapshot.data() } as CharityFormConfig);
-            } else {
+        const unsubscribe = onSnapshot(
+            doc(db, 'charity_forms', 'main_form'), 
+            (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    setConfig({ id: docSnapshot.id, ...docSnapshot.data() } as CharityFormConfig);
+                } else {
+                    setConfig(defaultConfig);
+                    // Auto-create default
+                    setDoc(doc(db, 'charity_forms', 'main_form'), defaultConfig).catch(err => {
+                        console.error("Failed to create default:", err);
+                    });
+                }
+            },
+            (error) => {
+                console.error("Error loading forms:", error);
                 setConfig(defaultConfig);
-                // Auto-create default
-                setDoc(doc(db, 'charity_forms', 'main_form'), defaultConfig);
             }
-        });
+        );
         return () => unsubscribe();
     }, []);
 
     useEffect(() => {
         const q = query(collection(db, 'charity_submissions'), orderBy('timestamp', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setSubmissions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CharitySubmission)));
-        });
+        const unsubscribe = onSnapshot(
+            q, 
+            (snapshot) => {
+                setSubmissions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CharitySubmission)));
+            },
+            (error) => {
+                console.error("Error loading submissions:", error);
+                // Don't crash, just empty list
+                setSubmissions([]);
+            }
+        );
         return () => unsubscribe();
     }, []);
 
